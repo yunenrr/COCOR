@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Yunen Ramos Ramírez">
+  <meta name="description" content="This is a page with names of ITC companis in Costa Rica.">
+  <meta name="keywords" content="HTML5, Bootstrap, jQuery, AJAX">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>COCOR: Companies Costa Rica</title>
+  <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./css/bootstrap.min.css">
+
+  <!-- JS -->
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/bootstrap.min.js"></script>
+  <script src="./js/jspdf.min.js"></script> <!-- Librería para generar PDF -->
+  <script src="./js/jspdf.plugin.autotable.js"></script> <!-- Librería para generar tablas -->
+  <script src="./js/cocor.js"></script>
+</head>
+<body>
+  <!-- Menú de navegación -->
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>                        
+        </button>
+        <a class="navbar-brand" href="./index.html">COCOR</a>
+      </div>
+      <div class="collapse navbar-collapse" id="myNavbar">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="active"><a href="./index.html">Home</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sección de contenedor -->
+  <section class="container-fluid text-center">
+    
+    <!-- Contenido de una fila -->
+    <div class="row content">
+      <aside class="col-sm-2 sidenav text-justify">
+        <h4 class="media-heading">About Yunen Ramos Ramírez</h4>
+        <p>I am a programmer, I like to solve problems.</p>
+        <div class="panel-group">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">
+                <a data-toggle="collapse" href="#divtech">Technologies:</a>
+              </h4>
+            </div>
+            <div id="divtech" class="panel-collapse collapse">
+              <div class="panel-body">
+                <p>
+                  <ul>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/c/" target="_blank">C#</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/github/" target="_blank">GitHub</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/html5/" target="_blank">HTML5</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/javascript/" target="_blank">JavaScript</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/laravel/" target="_blank">Laravel</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/mongodb/" target="_blank">MongoDB</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/nodejs/" target="_blank">NodeJS</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/sql/" target="_blank">SQL</a></li>
+                    <li><a href="https://yarrblogcr.wordpress.com/tag/visual-basic/" target="_blank">Visual Basic</a></li>
+                  </ul>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div class="col-sm-2">
+        <div class="btn-group btn-group-justified">
+          <a href="#" class="btn btn-primary" id="btnPrint" name="btnPrint">PDF</a>
+          <a href="#" class="btn btn-primary" id="btnAdd" name="btnAdd" data-toggle="modal" data-target="#addCompany">Add</a>
+        </div> 
+      </div>
+      <div class="col-sm-6">
+        <input class="form-control" id="txtSearch" name="txtSearch" type="text" placeholder="Search..">
+      </div>
+
+      <!-- Modal -->
+      <div id="addCompany" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header bg-primary">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">Add Company</h4>
+            </div>
+            <div class="modal-body">
+              <form action="https://companiescr.azurewebsites.net/api/Company/" method="POST" enctype="application/x-www-form-urlencoded"
+              id="formAddCompany" name="formAddCompany">
+                <div class="form-group" id="divBodyModal" name="divBodyModal">
+                  <label for="name">Name:</label>
+                  <input type="text" name="name" id="name" maxlength="100" required>
+                </div>
+                <div class="form-group">
+                  <label for="url">Page:</label>
+                  <input type="url" name="url" id="url" maxlength="200" required>
+                </div>
+                <button type="submit" class="btn btn-default" id="btnSendCompany" name="btnSendCompany">Submit</button>
+                <button type="reset" class="btn btn-default" id="btnClear" name="btnClear">Clear</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <article class="col-sm-8 text-justify" id="allCompanies" name="allCompanies">
+        <div class="table-responsive">
+          <table class="table table-hover" id="tableCompanies" name="tableCompanies">
+              <thead>
+                <tr>
+                  <th>Company name:</th>
+                  <th>Page:</th>
+                </tr>
+              </thead>
+              <tbody id="tbCompany" name="tbCompany"></tbody>
+            </table>
+        </div>
+        <center>
+          <img class="img-responsive" src="./img/logo.png" alt="COCOR Logo">
+        </center>
+      </article>
+      <aside class="col-sm-2 sidenav">
+        <div class="well">
+          <a href="https://goo.gl/6B1MNZ" target="_blank"><img class="img-responsive" src="./img/hosting.gif" alt="GoDaddy Hosting"></a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <footer class="container-fluid text-center">
+    <p>&copy; All rights reserved.</p>
+  </footer>
+</body>
+</html>
