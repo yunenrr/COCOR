@@ -32,7 +32,19 @@ $(document).ready(
               linkPage.setAttribute("target", "_blank"); // Se le agrega el target al link.
               linkPage.text = data[position].Url; // Se le agrega texto al link.
               colPage.append(linkPage); // Se agrega el link a la columna página.
-              row.append(colName, colPage); // Se agregan las columnas nombre y página a la fila.
+              let colOptions = document.createElement("td");
+              let linkDelete = document.createElement("a");
+              linkDelete.setAttribute("class", "btnOptionDelete btn btn-primary btn-sm btn-block");
+              linkDelete.id = "btnDelete" + data[position].Id;
+              linkDelete.text = "Delete";
+              let linkUpdate = document.createElement("a");
+              linkUpdate.setAttribute("class", "btnOptionUpdate btn btn-primary btn-sm btn-block");
+              linkUpdate.setAttribute("data-toggle","modal");
+              linkUpdate.setAttribute("data-target","#updateCompany");
+              linkUpdate.id = "btnUpdate" + data[position].Id;
+              linkUpdate.text = "Update";
+              colOptions.append(linkDelete, linkUpdate);
+              row.append(colName, colPage, colOptions); // Se agregan las columnas nombre y página a la fila.
               $("tbody").append(row); // Se agrega la fila al cuerpo de la tabla.
             }// Fin del if.
           }// Fin del for.
@@ -68,43 +80,50 @@ $(document).ready(
       }
     ); // Fin del evento.
 
-    // Se le agrega el evento al botón de imprimir.
-    $("#btnPrint").click(
+    // Se agrega el escuchador de eventos al botón de actualizar creado dinámicamente.
+    $("tbody").on("click", "a.btnOptionUpdate", 
       function(){
-        let doc = new jsPDF();
-
-        let pageContent = function (data) {
-          // HEADER
-          doc.setFontSize(20);
-          doc.setTextColor(40);
-          doc.setFontStyle('normal');
-          doc.text("ICT Companies in Costa Rica", 60, 22);
-
-          // FOOTER
-          doc.setFontSize(10);
-          doc.text("Yunen Ramos R. - My profile: https://www.linkedin.com/in/yunenrr/", data.settings.margin.left, doc.internal.pageSize.height - 10);
-        };
-
-        // Add the table.
-        let table = document.getElementById("tableCompanies");
-        let result = doc.autoTableHtmlToJson(table);
-        doc.autoTable(result.columns, result.data, {
-          addPageContent: pageContent,
-          margin: {top: 30},
-          styles: {overflow: 'linebreak'}
-        });
-        doc.save('ict-companies-cr.pdf');
-      }// Fin de la función.
-    ); // Fin del evento.
+        let buttonId = $(this).attr('id');
+        let companieId = buttonId.substring(9,buttonId.lenght);
+        
+        // Abrimos AJAX para obtener la información de la empresa.
+        $.ajax(
+          {
+            type: "GET",
+            url: "https://companiescr.azurewebsites.net/api/Company?id="+companieId,
+            success: function(data){
+              $("input[name=txtId]").val(data.Id);
+              $("#name").val(data.Name);
+              $("#url").val(data.Url);
+            }, // Fin del success.
+            error: function(data){
+              let div = document.createElement("div");
+              div.setAttribute("class", "alert alert-danger alert-dismissable");
+              let link = document.createElement("a");
+              link.setAttribute("class", "close");
+              link.setAttribute("data-dismiss", "alert");
+              link.setAttribute("aria-label", "close");
+              let strong = document.createElement("strong");
+              strong.innerHTML = "Danger!";
+              let paragraph = document.createElement("p");
+              paragraph.innerHTML = "At this time it was not possible to connect to the database.";
+              link.innerHTML = "&times;";
+              div.append(link, strong, paragraph);
+              $("#divBodyModal").prepend(div);
+            }// Fin del error.
+          }
+        );//Fin del AJAX.
+      }// Fin de la función interna.
+    );// Fin del evento.
 
     // Evento al submit del formulario agregar empresas.
-    $("#formAddCompany").submit(
+    $("#formUpdateCompany").submit(
       function(){
         $.ajax(
           {
-            type: "POST",
+            type: "PUT",
             url: "https://companiescr.azurewebsites.net/api/Company/",
-            data: {"name":$("#name").val(),"url":$("#url").val()},
+            data: {"id":$("input[name=txtId]").val(),"name":$("#name").val(),"url":$("#url").val()},
             success: function(data){
               let div = document.createElement("div");
               div.setAttribute("class", "alert alert-success alert-dismissable");
@@ -115,23 +134,58 @@ $(document).ready(
               let strong = document.createElement("strong");
               strong.innerHTML = "Success!";
               let paragraph = document.createElement("p");
-              paragraph.innerHTML = "The company was added.";
+              paragraph.innerHTML = "The company was update. To see the change, refresh the page.";
               link.innerHTML = "&times;";
               div.append(link, strong, paragraph);
               $("#divBodyModal").prepend(div);
+            }, // Fin del success.
+            error: function(data){
+              let div = document.createElement("div");
+              div.setAttribute("class", "alert alert-danger alert-dismissable");
+              let link = document.createElement("a");
+              link.setAttribute("class", "close");
+              link.setAttribute("data-dismiss", "alert");
+              link.setAttribute("aria-label", "close");
+              let strong = document.createElement("strong");
+              strong.innerHTML = "Danger!";
+              let paragraph = document.createElement("p");
+              paragraph.innerHTML = "Verify that the page doens't exist.";
+              link.innerHTML = "&times;";
+              div.append(link, strong, paragraph);
+              $("#divBodyModal").prepend(div);
+            }// Fin del error.
+          }
+        );//Fin del AJAX.
+        return false;
+      }
+    );// Fin del evento.
 
-              // Se agrega a la tabla.
-              let row = document.createElement("tr"); // Se crea una fila.
-              let colName = document.createElement("td"); // Se crea la columna nombre.
-              colName.innerHTML = $("#name").val(); // Se le agrega valor a la columna nombre.
-              let colPage = document.createElement("td"); // Se crea la columna página.
-              let linkPage = document.createElement("a"); // Se crea un link.
-              linkPage.setAttribute("href", $("#url").val()); // Se le agrega el href al link.
-              linkPage.setAttribute("target", "_blank"); // Se le agrega el target al link.
-              linkPage.text = $("#url").val(); // Se le agrega texto al link.
-              colPage.append(linkPage); // Se agrega el link a la columna página.
-              row.append(colName, colPage); // Se agregan las columnas nombre y página a la fila.
-              $("tbody").append(row); // Se agrega la fila al cuerpo de la tabla.
+    // Se agrega el escuchador de eventos al botón de eliminar creado dinámicamente.
+    $("tbody").on("click", "a.btnOptionDelete", 
+      function(){
+        let buttonId = $(this).attr('id');
+        let companieId = buttonId.substring(9,buttonId.lenght);
+        $(this).closest('tr').remove(); // Elimina la fila dónde está ubicado el botón.
+        
+        // Abrimos AJAX para obtener la información de la empresa.
+        $.ajax(
+          {
+            type: "DELETE",
+            url: "https://companiescr.azurewebsites.net/api/Company?id="+companieId,
+            success: function(data){
+              let div = document.createElement("div");
+              div.setAttribute("class", "alert alert-success alert-dismissable");
+              let link = document.createElement("a");
+              link.setAttribute("class", "close");
+              link.setAttribute("data-dismiss", "alert");
+              link.setAttribute("aria-label", "close");
+              let strong = document.createElement("strong");
+              strong.innerHTML = "Success!";
+              let paragraph = document.createElement("p");
+              paragraph.innerHTML = "The company was delete.";
+              link.innerHTML = "&times;";
+              div.append(link, strong, paragraph);
+              $("#allCompanies").prepend(div);
             }, // Fin del success.
             error: function(data){
               let div = document.createElement("div");
@@ -150,8 +204,7 @@ $(document).ready(
             }// Fin del error.
           }
         );//Fin del AJAX.
-        return false;
-      }
+      }// Fin de la función interna.
     );// Fin del evento.
   }//Fin de la función principal
 );
